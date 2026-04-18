@@ -1,14 +1,23 @@
-"""
-Mock PostgreSQL connection for architecture diagram and repo structure.
-Handles user session data and state management.
-"""
-def get_db():
-    # Stub for getting DB session
-    return "DB_SESSION"
+import os
+from sqlalchemy import create_all
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-def get_user_profile(user_id: str):
-    return {
-        "user_id": user_id,
-        "name": "Muhammad Jamil",
-        "preferences": {"voice_feedback": True}
-    }
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/seewithme")
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def init_db():
+    from .models import Base
+    Base.metadata.create_all(bind=engine)
