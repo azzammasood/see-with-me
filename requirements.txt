@@ -1,0 +1,12 @@
+fastapi==0.110.0
+uvicorn==0.27.1
+pydantic==2.6.4
+# Database
+pinecone-client==3.1.0
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.29
+# AI
+google-generativeai==0.4.1
+ultralytics==8.1.42
+# Utilities
+python-dotenv==1.0.1
