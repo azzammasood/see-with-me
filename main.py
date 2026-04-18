@@ -1,25 +1,75 @@
-from fastapi import FastAPI
-from database.postgres import get_db
-from database.pinecone_db import query_vector
-from ml.cloud_llm import generate_response
+import time
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from typing import List
 
-app = FastAPI(title="See With Me API", version="0.1.0")
+from database.postgres import get_db, init_db
+from database.schemas import VQARequest, VQAResponse, UserSchema, ActivitySchema
+from database.pinecone_db import vector_store
+from ml.cloud_llm import ai_service
+from ml.yolo_edge import vision_handler
+
+app = FastAPI(
+    title="See With Me - Production Core API",
+    description="Backend services for real-time voice-native mobility assistance.",
+    version="1.0.0"
+)
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, restrict to specific domains
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+def startup_event():
+    # Initialize database tables on startup
+    # init_db() # Uncomment when DATABASE_URL is active
+    pass
 
 @app.get("/")
-def read_root():
-    return {"message": "See With Me Backend API is running."}
+async def root():
+    return {
+        "status": "online",
+        "service": "See With Me API",
+        "timestamp": time.time()
+    }
 
-@app.get("/api/health")
-def health_check():
-    return {"status": "healthy"}
+@app.post("/api/v1/analyze", response_model=VQAResponse)
+async def analyze_environment(request: VQARequest):
+    start_time = time.time()
+    
+    # 1. Retrieve Context from Spatial Memory
+    context = vector_store.query_spatial_memory(request.query)
+    
+    # 2. Process with Multimodal AI
+    response_text = await ai_service.process_multimodal_query(
+        prompt=request.query,
+        image_data=request.image_b64
+    )
+    
+    latency = (time.time() - start_time) * 1000
+    
+    return VQAResponse(
+        response=response_text,
+        context=context,
+        latency_ms=latency
+    )
 
-@app.post("/api/vqa")
-def visual_question_answering(query: str, image_b64: str = None):
-    # This acts as a stub to show architecture.
-    # 1. Edge ML (Yolo) would have cropped/passed images here.
-    # 2. Could query pinecone here for context.
-    # 3. Cloud LLM processes prompt.
-    context = query_vector(query)
-    response = generate_response(query, context, image_b64)
-    return {"response": response}
+@app.post("/api/v1/edge/hazards")
+async def check_hazards(detections: List[dict]):
+    """Endpoint for zero-latency safety verification from client-side YOLO."""
+    return vision_handler.process_edge_trigger(detections)
 
+@app.get("/api/v1/user/activities", response_model=List[ActivitySchema])
+async def get_activities(db: Session = Depends(get_db)):
+    # This would normally query the DB. 
+    # For Git demo purposes, we return a structured response that matches the schema.
+    return [
+        {"id": 1, "label": "Went for walking", "timestamp_str": "SUN, 12:00 AM", "user_id": 1, "created_at": "2024-04-19T12:00:00"},
+        {"id": 2, "label": "Read text", "timestamp_str": "SAT, 3:00 PM", "user_id": 1, "created_at": "2024-04-18T15:00:00"},
+    ]
