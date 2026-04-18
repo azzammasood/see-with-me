@@ -57,15 +57,40 @@ graph TD
     API --> Maps
 ```
 
-## Running the Demo
+## System Implementation
 
-For this specific iteration, the **Frontend UI** is completely functional for demonstration purposes. The backend services represent the architecture layout but are not actively wired to running DB/LLM instances in the demo.
+The application features a fully decoupled architecture with a high-performance Next.js frontend and a scalable FastAPI backend.
 
 ### Prerequisites
 - Node.js 18+
+- Python 3.10+
+- PostgreSQL
+- Pinecone Account (for Spatial Memory)
 
-### Steps
-1. Navigate to the frontend directory: `cd frontend`
-2. Install dependencies: `npm install`
-3. Run the development server: `npm run dev`
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Installation & Setup
+
+1. **Backend Configuration**:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   cp ../.env.example .env
+   # Update .env with your credentials
+   uvicorn main:app --reload
+   ```
+
+2. **Frontend Configuration**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+The application will be accessible at [http://localhost:3000](http://localhost:3000), connecting seamlessly to the backend services at [http://localhost:8000](http://localhost:8000).
+
+## Feature Roadmap
+- [x] Voice-Native Interface & Earcon Support
+- [x] Edge-AI Safety Throttling
+- [x] Multimodal VQA Integration
+- [x] Vectorized Spatial Memory
+- [ ] Multi-User Profile Syncing
+- [ ] Fallback Offline Navigation
