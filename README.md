@@ -2,9 +2,11 @@
 
 "See With Me" is a high-performance, voice-native Progressive Web App (PWA) designed to provide real-time, contextual mobility and cognitive assistance for the visually impaired. By integrating Edge-AI safety filters with large-scale Multimodal reasoning, the system offers zero-latency protection and deep environmental understanding through a unified auditory interface.
 
-![Architecture Diagram](assets/architecture.png)
+![alt text](frontend.png)
 
 ## Technical Architecture & Design Decisions
+
+![Architecture Diagram](assets/architecture.png)
 
 The platform is built on a modern, decoupled stack selected for maximum performance, lower TTI (Time to Interactive), and high-fidelity intelligence.
 
